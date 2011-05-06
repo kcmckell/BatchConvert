@@ -11,6 +11,7 @@ Template-batch python-fu by Raymond Ostertag
 Installation : put the template-batch.py file in your $HOME/.gimp-2.n/plug-ins.
 On Linux and Mac OSX the file must be executable.
 Documentation : http://www.gimp.org/docs/python/index.html
+Super useful gimpfu reference: http://www.jamesh.id.au/software/pygimp/gimp-objects.html
 """
 
 """
@@ -90,6 +91,10 @@ def process_files( filepathnames ):
 	"""
 	#write here the batch process
 	image = pdb.gimp_file_load(filepathnames,filepathnames);
+	# List layers in IMAGE:
+	layerlist = image.layers;
+	
+	
 	
 	
 	
