@@ -93,10 +93,11 @@ def process_files( filepathnames ):
 	image = pdb.gimp_file_load(filepathnames,filepathnames);
 	# List layers in IMAGE:
 	layerlist = image.layers;
-	
-	
-	
-	
+	#DONE: Which serialization works in PS (MSB or LSB)?
+	#---- All are openable, editable in PS, and recognized by LR.  Doesn't matter.
+	#DONE: Which compression?
+	#---- All identical.  856MB test XCF is same size in all three compressions.
+
 	
 """
 Register
