@@ -89,12 +89,17 @@ def process_files( filepathnames ):
 	"""
 	#write here the batch process
 	image = pdb.gimp_file_load(filepathnames,filepathnames);
+	# Check for layer modifications.
+	(imageModified, activeLayer) = layer_mod(image);
 	#DONE: Which serialization works in PS (MSB or LSB)?
 	#---- All are openable, editable in PS, and recognized by LR.  Doesn't matter.
 	#DONE: Which compression?
 	#---- All identical.  856MB test XCF is same size in all three compressions.
-	# Check for layer modifications.
-	imageModified = layer_mod(image);
+	# Save out to same path as original, but convert extension.
+	(filepath,basefilename) = os.path.split( filepathnames );
+	(shortname, extension) = os.path.splitext(basefilename);
+	newname = os.path.join(filepath,shortname+os.extsep+'psd');
+	pdb.file_psd_save(imageModified, activeLayer, newname, newname, 0, 0);
 	
 	
 def layer_mod( image_object ):
@@ -102,6 +107,7 @@ def layer_mod( image_object ):
 	Modifies layers in the IMAGE as necessary to make them PSD-compliant.
 	"""
 	img = image_object;
+	layerActive = pdb.gimp_image_active_drawable(img);
 	layerlist = img.layers;
 	numlayers = len(layerlist);
 	origVisibility = [pdb.gimp_drawable_get_visible(lay) for lay in layerlist];
@@ -115,9 +121,12 @@ def layer_mod( image_object ):
 				else:
 					pdb.gimp_drawable_set_visible(k,0);
 			newlay = pdb.gimp_layer_new_from_visible(img, img, lay.name);
-			pdg.gimp_drawable_delete(lay);
 			pdb.gimp_image_add_layer(img, newlay, laypos);
+			if lay == layerActive:
+				layerActive = newlay;
+			pdg.gimp_drawable_delete(lay);
 		# end if text
+	return (img, layerActive);
 	
 	
 	
