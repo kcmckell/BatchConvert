@@ -63,8 +63,6 @@ def python_fu_batch_convert( dirname, ext ):
 		# Start of process
 		process_files( f );
 		# End of process
-##		print '===='
-##		print f
 	if numFilesFound == 0:
 		pdb.gimp_message( _("%s has no files to convert") %(dirname ));
 	else:
@@ -91,13 +89,37 @@ def process_files( filepathnames ):
 	"""
 	#write here the batch process
 	image = pdb.gimp_file_load(filepathnames,filepathnames);
-	# List layers in IMAGE:
-	layerlist = image.layers;
 	#DONE: Which serialization works in PS (MSB or LSB)?
 	#---- All are openable, editable in PS, and recognized by LR.  Doesn't matter.
 	#DONE: Which compression?
 	#---- All identical.  856MB test XCF is same size in all three compressions.
-
+	# Check for layer modifications.
+	imageModified = layer_mod(image);
+	
+	
+def layer_mod( image_object ):
+	"""
+	Modifies layers in the IMAGE as necessary to make them PSD-compliant.
+	"""
+	img = image_object;
+	layerlist = img.layers;
+	numlayers = len(layerlist);
+	origVisibility = [pdb.gimp_drawable_get_visible(lay) for lay in layerlist];
+	for lay in layerlist:
+		# If layer is text, convert to RGBA layer.
+		if pdb.gimp_drawable_is_text_layer(lay):
+			laypos = pdb.gimp_image_get_layer_position(img, lay);
+			for k in layerlist:
+				if k == lay:
+					pdb.gimp_drawable_set_visible(k,1);
+				else:
+					pdb.gimp_drawable_set_visible(k,0);
+			newlay = pdb.gimp_layer_new_from_visible(img, img, lay.name);
+			pdg.gimp_drawable_delete(lay);
+			pdb.gimp_image_add_layer(img, newlay, laypos);
+		# end if text
+	
+	
 	
 """
 Register
