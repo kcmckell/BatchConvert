@@ -16,14 +16,42 @@ Super useful gimpfu reference: http://www.jamesh.id.au/software/pygimp/gimp-obje
 
 """
 TODO:
-+ Convert text to layer
-+ Unsupported layer modes:
--+ Divide not offered in PS => Should be able to invert top layer then multiply.
+DONE Convert text to layer
+Jeez:
+http://www.pegtop.net/delphi/articles/blendmodes/softlight.htm
 
++ Good to go:
+-+ Soft light
+-+ Screen
+-+ Overlay ??? https://bugzilla.gnome.org/show_bug.cgi?id=162395
+-+ Multiply
+-+ Lighten only
+-+ Hue
+-+ Hard light
+-+ Difference
+-+ Darken only
+-+ Color
++ Unsupported layer modes:
+-+ Divide
+--+ Close: Invert top, top mode set to Screen.
+-+ Dodge
+-+ Burn
+-+ Grain extract
 -+ Grain Merge
--+ Other grain?
--+ Gimp Overlay => Invert layer position+ Hard light
-ref: http://emptyeasel.com/2008/10/31/explaining-blending-modes-in-photoshop-and-gimp-multiply-divide-overlay-screen/
+-+ Addition
+-+ Subtraction
++ Differeing layer modes:
+-+ Value
+-+ Saturation
+--+ Photoshop decomposes into Hue, Chroma, Luma.  
+--+ GIMP decomposes to HSV.
+--+ Photoshop "saturation" suppresses top layer's H and L and displays {B_H, T_C, B_L}.
+--+ GIMP saturation suppress top layer's H and V and displays {B_H, T_S, B_V}.
+--+ Photoshop equivalent of "value" suppresses top layer's H and C and displays {B_H, B_C, T_L}.
+--+ GIMP value suppresses top layer's H and S and displays {B_H, B_S, T_V}.
+--+ Haven't found transformations f1 and f2 such that {f1(B)_H, f2(T)_C, f1(B)_L} = {B_H, T_S, B_V} (for saturation mode, e.g.)
+refs: http://en.wikipedia.org/wiki/Blend_modes
+refs: http://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
 """
 
 from gimpfu import *
