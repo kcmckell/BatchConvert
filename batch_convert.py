@@ -23,17 +23,17 @@ http://www.pegtop.net/delphi/articles/blendmodes/softlight.htm
 + Good to go:
 -+ Soft light
 -+ Screen
--+ Overlay ??? https://bugzilla.gnome.org/show_bug.cgi?id=162395
 -+ Multiply
--+ Lighten only
+-+ Lighten only (mapped to Lighten)
 -+ Hue
 -+ Hard light
 -+ Difference
--+ Darken only
+-+ Darken only (mapped to Darken)
 -+ Color
 + Unsupported layer modes:
 -+ Divide
 --+ Close: Invert top, top mode set to Screen.
+--+ Not so fast: Close for one test case, not close for another.  Not a good substitute.
 -+ Dodge
 -+ Burn
 -+ Grain extract
@@ -41,6 +41,10 @@ http://www.pegtop.net/delphi/articles/blendmodes/softlight.htm
 -+ Addition
 -+ Subtraction
 + Differeing layer modes:
+-+ Overlay 
+--+ Close, but dissimilar definitions.
+--+ Ref: https://bugzilla.gnome.org/show_bug.cgi?id=162395
+--+ Photoshop Overlay is equivalent to Gimp layer swap, top layer Hard Light.
 -+ Value
 -+ Saturation
 --+ Photoshop decomposes into Hue, Chroma, Luma.  
