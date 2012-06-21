@@ -141,23 +141,23 @@ def layer_mod( image_object ):
 	img = image_object;
 	layerActive = pdb.gimp_image_active_drawable(img);
 	layerlist = img.layers;
-	numlayers = len(layerlist);
-	origVisibility = [pdb.gimp_drawable_get_visible(lay) for lay in layerlist];
+    visdict = {};
+    for lay in layerlist:
+        visdict[pdb.gimp_image_get_layer_position(img,lay)] = [lay, pdb.gimp_drawable_get_visible(lay)];
+	[pdb.gimp_drawable_set_visible(k,0) for k in layerlist];
 	for lay in layerlist:
 		# If layer is text, convert to RGBA layer.
 		if pdb.gimp_drawable_is_text_layer(lay):
 			laypos = pdb.gimp_image_get_layer_position(img, lay);
-			for k in layerlist:
-				if k == lay:
-					pdb.gimp_drawable_set_visible(k,1);
-				else:
-					pdb.gimp_drawable_set_visible(k,0);
+            pdb.gimp_drawable_set_visible(lay,1);
 			newlay = pdb.gimp_layer_new_from_visible(img, img, lay.name);
 			pdb.gimp_image_add_layer(img, newlay, laypos);
 			if lay == layerActive:
 				layerActive = newlay;
-			pdg.gimp_drawable_delete(lay);
+			img.remove_layer(lay);
+            visdict[laypos] = [newlay, visdict[laypos][1]];
 		# end if text
+    [pdb.gimp_drawable_set_visible(v[0], v[1]) for k,v in visdict.items()];
 	return (img, layerActive);
 	
 	
