@@ -175,6 +175,18 @@ def layer_mod( image_object ):
 				img.remove_layer(lay);
 			visdict[laypos] = [newlay, visdict[laypos][1]];
 		# end if text
+		# If layer mode is not supported well by the Save to PhotoShop function, Make new layer from visible.
+		if pdb.gimp_layer_get_mode(lay) not in layerModeJudgement['good']:
+			# Turn on this layer and all below.
+			
+			# Make new layer from visible.
+			# Turn off this layer and all below.
+			# Insert new layer with visibility on.
+				# Remember: layer position starts at 0 on top.  Inserting a layer at position x will add one to the position of every layer that was formerly >= x.
+				# Also remember, you've reversed the order of layerlist.
+			
+			continue;
+		# end if bad layer mode.
 	[pdb.gimp_drawable_set_visible(v[0], v[1]) for k,v in visdict.items()];
 	return (img, layerActive);
 	
