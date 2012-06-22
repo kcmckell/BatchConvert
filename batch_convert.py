@@ -21,15 +21,15 @@ Jeez:
 http://www.pegtop.net/delphi/articles/blendmodes/softlight.htm
 
 + Good to go:
--+ Soft light
--+ Screen
--+ Multiply
--+ Lighten only (mapped to Lighten)
--+ Hue
--+ Hard light
--+ Difference
--+ Darken only (mapped to Darken)
--+ Color
+-+ Soft light 19
+-+ Screen 4
+-+ Multiply 3
+-+ Lighten only 10 (mapped to Lighten) 
+-+ Hue 11
+-+ Hard light 18
+-+ Difference 6
+-+ Darken only 9 (mapped to Darken)
+-+ Color 13
 + Unsupported layer modes:
 -+ Divide
 --+ Close: Invert top, top mode set to Screen.
@@ -59,7 +59,8 @@ refs: http://en.wikipedia.org/wiki/HSL_and_HSV#Hue_and_chroma
 """
 
 from gimpfu import *
-import os, glob
+import os, glob, time
+from stat import *
 
 """
 Internationalization:
@@ -74,6 +75,12 @@ Descriptors
 """
 Template_batch_help = "Batch convert XCF to PSD in all subdirectories."                              
 Template_batch_description = "Python-fu plugin Gimp 2.6."+" "+Template_batch_help
+
+"""
+Globals
+"""
+layer_modes = ['Normal','Dissolve','Behind','Multiply','Screen','Overlay','Difference','Addition','Subtract','Darken Only','Lighten Only','Hue','Saturation','Color','Value','Divide','Dodge','Burn','Hardlight','Softlight','Grain Extract','Grain Merge','Color Erase','Erase','Replace','Anti Erase'];
+layer_modes_dict = dict(zip(range(0,len(layer_modes)),layer_modes));
 
 """
 Main
@@ -132,18 +139,29 @@ def process_files( filepathnames ):
 	(shortname, extension) = os.path.splitext(basefilename);
 	newname = os.path.join(filepath,shortname+os.extsep+'psd');
 	pdb.file_psd_save(imageModified, activeLayer, newname, newname, 0, 0);
+	# Timestamp mangling
+	st = os.stat(filepathnames)
+	orig_atime = st[ST_ATIME]; # Windows does not render ATIME (date accessed).
+	orig_mtime = st[ST_MTIME]; # Windows renders MTIME as Date Modified.
+	os.utime(newname,(orig_atime,orig_mtime)); # Python cannot modify Date Created.  Must settle for Date Modified only.
 	
 	
 def layer_mod( image_object ):
 	"""
 	Modifies layers in the IMAGE as necessary to make them PSD-compliant.
 	"""
+	# Separate "good" layer modes from "bad" ones.
+	layerModeJudgement = {'good' : [19,4,3,10,11,18,6,9,13]};
 	img = image_object;
 	layerActive = pdb.gimp_image_active_drawable(img);
 	layerlist = img.layers;
+	layerlist.reverse();	# Bottom layer is now at list index 0.
 	visdict = {};
+	modedict = {};
 	for lay in layerlist:
-		visdict[pdb.gimp_image_get_layer_position(img,lay)] = [lay, pdb.gimp_drawable_get_visible(lay)];
+		pos = pdb.gimp_image_get_layer_position(img,lay);
+		visdict[pos] = [lay, pdb.gimp_drawable_get_visible(lay)];
+		modedict[pos] = [lay, pdb.gimp_layer_get_mode(lay)];
 	[pdb.gimp_drawable_set_visible(k,0) for k in layerlist];
 	for lay in layerlist:
 		# If layer is text, convert to RGBA layer.
@@ -152,10 +170,10 @@ def layer_mod( image_object ):
 			pdb.gimp_drawable_set_visible(lay,1);
 			newlay = pdb.gimp_layer_new_from_visible(img, img, lay.name);
 			pdb.gimp_image_add_layer(img, newlay, laypos);
-		if lay == layerActive:
-			layerActive = newlay;
-			img.remove_layer(lay);
-		visdict[laypos] = [newlay, visdict[laypos][1]];
+			if lay == layerActive:
+				layerActive = newlay;
+				img.remove_layer(lay);
+			visdict[laypos] = [newlay, visdict[laypos][1]];
 		# end if text
 	[pdb.gimp_drawable_set_visible(v[0], v[1]) for k,v in visdict.items()];
 	return (img, layerActive);
