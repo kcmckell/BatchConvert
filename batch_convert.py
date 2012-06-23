@@ -86,6 +86,7 @@ class JumpList (list):
 	"""
 	Shortcut for jumping to next and previous elements of a list.
 	NOTE: Not designed for lists with repeated entries.
+	NOTE: Next of last element returns None; Prev of first element returns None.
 	>>> v = JumpList([0,1,2,3]);
 	>>> v.next(1)
 	2
@@ -93,8 +94,14 @@ class JumpList (list):
 	0
 	"""
 	def next(self,element):
+		elin = self.index(element);
+		N = len(self);		
+		if elin >= N-1: return None;
 		return self[self.index(element)+1]
 	def prev(self,element):
+		elin = self.index(element);
+		N = len(self);
+		if elin == 0: return None;
 		return self[self.index(element)-1]
 
 """
@@ -113,7 +120,7 @@ def python_fu_batch_convert( dirname, ext ):
 	numFilesFound = 0;
 	for f in L:
 		numFilesFound += 1;
-		pdb.gimp_message("And another one.")
+#		pdb.gimp_message("And another one.")
 		# Start of process
 		process_files( f );
 		# End of process
@@ -192,7 +199,7 @@ def layer_mod( image_object ):
 		if pdb.gimp_drawable_is_text_layer(lay):
 			laypos = pdb.gimp_image_get_layer_position(img, lay);
 			pdb.gimp_drawable_set_visible(lay,1);
-			newlay = pdb.gimp_layer_new_from_visible(img, img, "[Text]"+lay.name);
+			newlay = pdb.gimp_layer_new_from_visible(img, img, lay.name+"[Text]");
 			pdb.gimp_image_add_layer(img, newlay, laypos);
 			if lay == layerActive:
 				layerActive = newlay;
@@ -208,21 +215,37 @@ def layer_mod( image_object ):
 					v.append(newlay);
 			pdb.gimp_drawable_set_visible(newlay,0);
 		# end if text
+	layerlist = JumpList(img.layers);
+	layerlist.reverse();
+	for lay in layerlist[:]:
 		# If layer mode is not supported well by the Save to PhotoShop function, Make new layer from visible.
-#		if (pdb.gimp_layer_get_mode(lay) not in layerModeJudgement['good']) & (pdb.gimp_layer_get_mode(layerlist.next(lay)) in layerModeJudgement['good']):
-#			newName = lay.name+"[BadMode:"+layer_modes_dict[pdb.gimp_layer_get_mode(lay)]+"]";
-#			# Turn on this layer and all below.
-#			for p in range(0,1+layerlist.index(lay)):
-#				if visdict[p][1] == 1: pdb.gimp_drawable_set_visible(layerlist[p],1);
-#			# Make new layer from visible.
-#			pdb.gimp_layer_new_from_visible(img, img, newName);
+		nextLay = layerlist.next(lay);
+		if (pdb.gimp_layer_get_mode(lay) not in layerModeJudgement['good']) & ((not nextLay) or (pdb.gimp_layer_get_mode(nextLay) in layerModeJudgement['good'])):
+			newName = lay.name+"[BadMode:"+layer_modes_dict[pdb.gimp_layer_get_mode(lay)]+"]";
+			# Turn on this layer and all below.
+			visLayers = [];
+			for p in range(0,1+layerlist.index(lay)):
+				if layerlist[p] in newVisibility[1]: 
+					visLayers.append(layerlist[p]);
+			[pdb.gimp_drawable_set_visible(L,1) for L in visLayers];
+			# Make new layer from visible.
+			newlay = pdb.gimp_layer_new_from_visible(img, img, newName);
+			if lay in origVisibility[1]: 
+				newVisibility[1].append(newlay);
+			else:
+				newVisibility[0].append(newlay);
+			newMode[0].append(newlay);
+			oldPos = pdb.gimp_image_get_layer_position(img, lay)
+			pdb.gimp_image_add_layer(img, newlay, oldPos);
+			layerlist.reverse();
+			layerlist.insert(oldPos, newlay);
+			layerlist.reverse();
 #			# Turn off this layer and all below.
-#			
-#			# Insert new layer with visibility on.
+##			[pdb.gimp_drawable_set_visible(L,0) for L in visLayers.append(newlay)];
+#			pdb.gimp_drawable_set_visible(newlay,0);
+#			[pdb.gimp_drawable_set_visible(L,0) for L in visLayers];
 #				# Remember: layer position starts at 0 on top.  Inserting a layer at position x will add one to the position of every layer that was formerly >= x.
 #				# Also remember, you've reversed the order of layerlist.
-#			
-#			continue;
 		# end if bad layer mode.
 	for k,v in newVisibility.iteritems():
 		[pdb.gimp_drawable_set_visible(layer,k) for layer in v];
