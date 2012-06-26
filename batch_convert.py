@@ -21,6 +21,7 @@ Jeez:
 http://www.pegtop.net/delphi/articles/blendmodes/softlight.htm
 
 + Good to go:
+-+ Normal 0
 -+ Soft light 19
 -+ Screen 4
 -+ Multiply 3
@@ -173,12 +174,12 @@ def layer_mod( image_object ):
 	Modifies layers in the IMAGE as necessary to make them PSD-compliant.
 	"""
 	# Separate "good" layer modes from "bad" ones.
-	layerModeJudgement = {'good' : [19,4,3,10,11,18,6,9,13]};
+	layerModeJudgement = {'good' : [0,19,4,3,10,11,18,6,9,13]};
 	img = image_object;
 	layerActive = pdb.gimp_image_active_drawable(img);
-	layerlist = JumpList(img.layers);
+	layerlist = img.layers;
 	layerlist.reverse();	# Bottom layer is now at list index 0.
-	Nlayers = len(layerlist);
+#	Nlayers = len(layerlist);
 	origPosition = {};
 	origVisibility = {0:[], 1:[]};
 	origMode = dict(zip(xrange(len(layer_modes)), [[] for x in xrange(len(layer_modes))]));
@@ -215,16 +216,19 @@ def layer_mod( image_object ):
 					v.append(newlay);
 			pdb.gimp_drawable_set_visible(newlay,0);
 		# end if text
-	layerlist = JumpList(img.layers);
+#	layerlist = JumpList(img.layers);
+	layerlist = img.layers;
 	layerlist.reverse();
-	for lay in layerlist[:]:
+	newlayerlist = layerlist[:];
+	for c in xrange(len(layerlist)):
 		# If layer mode is not supported well by the Save to PhotoShop function, Make new layer from visible.
-		nextLay = layerlist.next(lay);
-		if (pdb.gimp_layer_get_mode(lay) not in layerModeJudgement['good']) & ((not nextLay) or (pdb.gimp_layer_get_mode(nextLay) in layerModeJudgement['good'])):
+		lay = layerlist[c];
+		nextLay = layerlist[c+1] if c < len(layerlist) - 1 else None;
+		if ((pdb.gimp_layer_get_mode(lay) not in layerModeJudgement['good']) and ((not nextLay) or (pdb.gimp_layer_get_mode(nextLay) in layerModeJudgement['good']))):
 			newName = lay.name+"[BadMode:"+layer_modes_dict[pdb.gimp_layer_get_mode(lay)]+"]";
 			# Turn on this layer and all below.
 			visLayers = [];
-			for p in range(0,1+layerlist.index(lay)):
+			for p in xrange(c+1):
 				if layerlist[p] in newVisibility[1]: 
 					visLayers.append(layerlist[p]);
 			[pdb.gimp_drawable_set_visible(L,1) for L in visLayers];
@@ -237,12 +241,12 @@ def layer_mod( image_object ):
 			newMode[0].append(newlay);
 			oldPos = pdb.gimp_image_get_layer_position(img, lay)
 			pdb.gimp_image_add_layer(img, newlay, oldPos);
-			layerlist.reverse();
-			layerlist.insert(oldPos, newlay);
-			layerlist.reverse();
+			newlayerlist.reverse();
+			newlayerlist.insert(oldPos, newlay);
+			newlayerlist.reverse();
 #			# Turn off this layer and all below.
-##			[pdb.gimp_drawable_set_visible(L,0) for L in visLayers.append(newlay)];
-#			pdb.gimp_drawable_set_visible(newlay,0);
+			[pdb.gimp_drawable_set_visible(L,0) for L in visLayers];
+			pdb.gimp_drawable_set_visible(newlay,0);
 #			[pdb.gimp_drawable_set_visible(L,0) for L in visLayers];
 #				# Remember: layer position starts at 0 on top.  Inserting a layer at position x will add one to the position of every layer that was formerly >= x.
 #				# Also remember, you've reversed the order of layerlist.
