@@ -225,7 +225,8 @@ def layer_mod( image_object ):
 		lay = layerlist[c];
 		nextLay = layerlist[c+1] if c < len(layerlist) - 1 else None;
 		if ((pdb.gimp_layer_get_mode(lay) not in layerModeJudgement['good']) and ((not nextLay) or (pdb.gimp_layer_get_mode(nextLay) in layerModeJudgement['good']))):
-			newName = lay.name+"[BadMode:"+layer_modes_dict[pdb.gimp_layer_get_mode(lay)]+"]";
+			newName = "[fromVisible]"+lay.name;
+			reName = lay.name+"[BadMode:"+layer_modes_dict[pdb.gimp_layer_get_mode(lay)]+"]";
 			# Turn on this layer and all below.
 			visLayers = [];
 			for p in xrange(c+1):
@@ -241,6 +242,8 @@ def layer_mod( image_object ):
 			newMode[0].append(newlay);
 			oldPos = pdb.gimp_image_get_layer_position(img, lay)
 			pdb.gimp_image_add_layer(img, newlay, oldPos);
+			# Rename old layer.
+			pdb.gimp_drawable_set_name(lay,reName);
 			newlayerlist.reverse();
 			newlayerlist.insert(oldPos, newlay);
 			newlayerlist.reverse();
@@ -251,8 +254,10 @@ def layer_mod( image_object ):
 #				# Remember: layer position starts at 0 on top.  Inserting a layer at position x will add one to the position of every layer that was formerly >= x.
 #				# Also remember, you've reversed the order of layerlist.
 		# end if bad layer mode.
+	for k,v in newMode.iteritems():
+		if k not in layerModeJudgement['good']: [pdb.gimp_layer_set_mode(L,0) for L in v];
 	for k,v in newVisibility.iteritems():
-		[pdb.gimp_drawable_set_visible(layer,k) for layer in v];
+		[pdb.gimp_drawable_set_visible(L,k) for L in v];
 	return (img, layerActive);
 	
 	
