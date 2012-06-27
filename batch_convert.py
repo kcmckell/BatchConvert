@@ -83,31 +83,9 @@ Globals
 layer_modes = ['Normal','Dissolve','Behind','Multiply','Screen','Overlay','Difference','Addition','Subtract','Darken Only','Lighten Only','Hue','Saturation','Color','Value','Divide','Dodge','Burn','Hardlight','Softlight','Grain Extract','Grain Merge','Color Erase','Erase','Replace','Anti Erase'];
 layer_modes_dict = dict(zip(xrange(len(layer_modes)),layer_modes));
 
-class JumpList (list):
-	"""
-	Shortcut for jumping to next and previous elements of a list.
-	NOTE: Not designed for lists with repeated entries.
-	NOTE: Next of last element returns None; Prev of first element returns None.
-	>>> v = JumpList([0,1,2,3]);
-	>>> v.next(1)
-	2
-	>>> v.prev(1)
-	0
-	"""
-	def next(self,element):
-		elin = self.index(element);
-		N = len(self);		
-		if elin >= N-1: return None;
-		return self[self.index(element)+1]
-	def prev(self,element):
-		elin = self.index(element);
-		N = len(self);
-		if elin == 0: return None;
-		return self[self.index(element)-1]
-
 """
 Main
-"""                                      
+"""   
 def python_fu_batch_convert( dirname, ext ):
 	"""
 	Main wrapper function designed to look for appropriate files and send them to GIMP for conversion.
@@ -179,7 +157,6 @@ def layer_mod( image_object ):
 	layerActive = pdb.gimp_image_active_drawable(img);
 	layerlist = img.layers;
 	layerlist.reverse();	# Bottom layer is now at list index 0.
-#	Nlayers = len(layerlist);
 	origPosition = {};
 	origVisibility = {0:[], 1:[]};
 	origMode = dict(zip(xrange(len(layer_modes)), [[] for x in xrange(len(layer_modes))]));
@@ -216,7 +193,6 @@ def layer_mod( image_object ):
 					v.append(newlay);
 			pdb.gimp_drawable_set_visible(newlay,0);
 		# end if text
-#	layerlist = JumpList(img.layers);
 	layerlist = img.layers;
 	layerlist.reverse();
 	newlayerlist = layerlist[:];
@@ -250,7 +226,6 @@ def layer_mod( image_object ):
 #			# Turn off this layer and all below.
 			[pdb.gimp_drawable_set_visible(L,0) for L in visLayers];
 			pdb.gimp_drawable_set_visible(newlay,0);
-#			[pdb.gimp_drawable_set_visible(L,0) for L in visLayers];
 #				# Remember: layer position starts at 0 on top.  Inserting a layer at position x will add one to the position of every layer that was formerly >= x.
 #				# Also remember, you've reversed the order of layerlist.
 		# end if bad layer mode.
@@ -259,9 +234,22 @@ def layer_mod( image_object ):
 	for k,v in newVisibility.iteritems():
 		[pdb.gimp_drawable_set_visible(L,k) for L in v];
 	return (img, layerActive);
-	
-	
-	
+
+
+"""
+Test
+"""
+def python_fu_batch_convert_test(in1, in2):
+	"""
+	To activate the timing tests, simply uncomment the second registration function, below.
+	"""
+	import time;
+	T = [time.clock()];
+	python_fu_batch_convert(in1,in2);
+	T.append(time.clock());
+	delta = T[-1]-T[0];
+	pdb.gimp_message( "Execution time: {0} seconds.".format(delta));
+
 """
 Register
 """
@@ -283,11 +271,23 @@ register(
 	menu="<Image>/File",
 	domain=("gimp20-template", locale_directory)   
 	)
-
-##def test():
-##	python_fu_batch_convert( 'C:\\Users\\Clay\\Pictures', 'ballsack' );
-
-##if __name__ == '__main__':
-##	test()
+	
+#register("python_fu_batch_convert_test",
+#	Template_batch_description,
+#	Template_batch_help,
+#	"K. Clay McKell",
+#	"GPL License",
+#	"2011",
+#	_("Test Batch Convert"),
+#	"",
+#	[
+#		(PF_DIRNAME, "directory", _("Directory"), os.getcwd() ),
+#		(PF_STRING, "ext", _("File extension"), "jpg" ),
+#	],
+#	[],
+#	python_fu_batch_convert_test,
+#	menu="<Image>/File",
+#	domain=("gimp20-template", locale_directory)   
+#	)
 
 main()	
